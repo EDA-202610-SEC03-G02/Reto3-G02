@@ -1,11 +1,39 @@
 import time
+import csv
+import os
+import sys
+from DataStructures.Map import map_linear_probing as lp
+from DataStructures.Tree import red_black_tree as rbt
+from DataStructures.Tree import binary_search_tree as bst
+from DataStructures.List import array_list as al
+from DataStructures.List import single_linked_list as sl
+
+csv.field_size_limit(2147483647)
+sys.setrecursionlimit(10000)
+
+data_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__))) + '/Data/data/'
 
 def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos
-    pass
+    analyzer = {
+        "reporte_carga": None,
+        "req1": None,
+        "req_2": None,
+        "req_3": None,
+        "lista_general": None,
+    }
+    
+    factor_carga = 0.5
+    capacidad = 20000
+    analyzer["reporte_carga"] = rbt.new_map()
+    analyzer["req1"] = lp.new_map(capacidad, factor_carga)
+    analyzer["req_2"] = lp.new_map(capacidad, factor_carga)
+    analyzer["req_3"] = lp.new_map(capacidad, factor_carga)
+    analyzer["lista_general"] = al.new_list()
+    return analyzer
 
 
 # Funciones para la carga de datos
@@ -15,8 +43,91 @@ def load_data(catalog, filename):
     Carga los datos del reto
     """
     # TODO: Realizar la carga de datos
-    pass
-
+    star_time = get_time()
+    
+    reporte = catalog["reporte_carga"]
+    map_req1 = catalog["req1"]
+    map_req2 = catalog["req_2"]
+    map_req3 = catalog["req_3"]
+    lista_carros = catalog["lista_general"]
+    
+    total = 0
+    computer_file = data_dir + filename
+    file = open(computer_file, encoding="utf-8")
+    input_file = csv.DictReader(file)
+    
+    for carro in input_file:
+        modelo = carro["Model"].lower().strip()
+        if modelo == "" or modelo is None:
+            modelo = "Unknown"
+        anio = carro["Year"].strip()
+        if anio == "" or anio is None:
+            anio = 0
+        fuel_type = carro["Fuel Type"].lower().strip()
+        if fuel_type == "" or fuel_type is None:
+            fuel_type = "Unknown"
+        precio = carro["Base Price (USD)"].strip()
+        if precio == "" or precio is None:
+            precio = 0
+        horsepower = carro["Horsepower"].strip()
+        if horsepower == "" or horsepower is None:
+            horsepower = 0
+        
+        al.add_last(lista_carros, carro)
+        total += 1
+        
+        llave_reporte = f"{int(anio):04d}-{float(precio):010.2f}-{modelo}-{total}"
+        rbt.put(reporte, llave_reporte, carro)
+        
+        arbol_req1 = lp.get(map_req1, modelo)
+        if arbol_req1 is None:
+            arbol_req1 = rbt.new_map()
+            lp.put(map_req1, modelo, arbol_req1)
+        rbt.put(arbol_req1, f"{float(precio):010.2f}-{total}", carro)
+        
+        arbol_req2 = lp.get(map_req2, fuel_type)
+        if arbol_req2 is None:
+            arbol_req2 = rbt.new_map()
+            lp.put(map_req2, fuel_type, arbol_req2)
+        rbt.put(arbol_req2, f"{int(horsepower):06d}-{total}", carro)
+        
+        llave_req3 = f"{int(anio)}-{fuel_type}"
+        arbol_req3 = lp.get(map_req3, llave_req3)
+        if arbol_req3 is None:
+            arbol_req3 = rbt.new_map()
+            lp.put(map_req3, llave_req3, arbol_req3)
+        rbt.put(arbol_req3, f"{float(precio):010.2f}-{total}", carro)
+        
+    file.close()
+        
+    llaves = rbt.key_set(reporte)
+    size = sl.size(llaves)
+        
+    primeros_5 = al.new_list()
+    for i in range(0,5):
+        key = sl.get_element(llaves, i)
+        al.add_last(primeros_5, rbt.get(reporte, key))
+    
+    ultimos_5 = al.new_list()
+    for i in range(size-5, size):
+        key = sl.get_element(llaves, i)
+        al.add_last(ultimos_5, rbt.get(reporte, key))
+    
+    end_time = get_time()
+    tiempo = delta_time(star_time, end_time)
+    
+    return {
+        "tiempo": tiempo,
+        "total": total,
+        "primeros_5": primeros_5,
+        "ultimos_5": ultimos_5
+    }
+    
+        
+        
+         
+        
+        
 # Funciones de consulta sobre el catálogo
 
 

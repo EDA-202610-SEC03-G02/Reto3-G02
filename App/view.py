@@ -1,4 +1,9 @@
 import sys
+from unittest.mock import Base
+from tabulate import tabulate
+import App.logic as logic
+from DataStructures.List import array_list as al
+
 
 
 def new_logic():
@@ -6,7 +11,8 @@ def new_logic():
         Se crea una instancia del controlador
     """
     #TODO: Llamar la función de la lógica donde se crean las estructuras de datos
-    pass
+    control = logic.new_logic()
+    return control
 
 def print_menu():
     print("Bienvenido")
@@ -24,8 +30,52 @@ def load_data(control):
     Carga los datos
     """
     #TODO: Realizar la carga de datos
-    pass
+    opciones = ["test", "small", "medium", "large"]
+    tamaño = input("Ingrese el tamaño de datos a cargar (test, small, medium, large): ").strip().lower()
+    
+    while tamaño not in opciones:
+        print("Opción inválida. Por favor, ingrese una opción válida.")
+        tamaño = input("Ingrese el tamaño de datos a cargar (test, small, medium, large): ").strip().lower()
+        
+    input_file = f"mercedes_sales_{tamaño}.csv"
+    datos = logic.load_data(control, input_file)
+    
+    print(f"\nTiempo de carga: {datos['tiempo']} ms")
+    print(f"Total de ventas cargadas: {datos['total']}")
+    
+    print(f"Primeros 5 carros en orden cronologico de venta:")
+    primeros_5 = []
+    for i in range(al.size(datos['primeros_5'])):
+        carro = al.get_element(datos['primeros_5'], i)
+        carro_info = {
+            "Modelo": carro["Model"],
+            "Año": carro["Year"],
+            "Fuel Type": carro["Fuel Type"],
+            "Color": carro["Color"],
+            "Precio": carro["Base Price (USD)"],
+            "Horsepower": carro["Horsepower"],
+            "Turbo": carro["Turbo"]
+        }
+        primeros_5.append(carro_info)
+    print(tabulate(primeros_5, headers="keys", tablefmt="fancy_grid"))
+    
+    print(f"Últimos 5 carros en orden cronologico de venta:")
+    ultimos_5 = []
+    for i in range(al.size(datos['ultimos_5'])):
+        carro = al.get_element(datos['ultimos_5'], i)
+        carro_info = {
+            "Modelo": carro["Model"],
+            "Año": carro["Year"],
+            "Fuel Type": carro["Fuel Type"],
+            "Color": carro["Color"],
+            "Precio": carro["Base Price (USD)"],
+            "Horsepower": carro["Horsepower"],
+            "Turbo": carro["Turbo"]
+        }
+        ultimos_5.append(carro_info)
+    print(tabulate(ultimos_5, headers="keys", tablefmt="fancy_grid"))
 
+    print("\nDatos cargados exitosamente.\n")
 
 def print_data(control, id):
     """
