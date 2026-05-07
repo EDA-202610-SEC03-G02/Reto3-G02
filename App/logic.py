@@ -455,6 +455,7 @@ def req_5(catalog, horsepower, delta, n):
     size = al.size(lista_carros)
     
     mapa_agrupado = lp.new_map(10000, 0.5)
+    lista_colores = al.new_list()
     total_rango = 0
     
     for i in range(size):
@@ -466,6 +467,7 @@ def req_5(catalog, horsepower, delta, n):
             color = carro["Color"].lower().strip()
             registros_color = lp.get(mapa_agrupado, color)
             if registros_color is None:
+                al.add_last(lista_colores, color)
                 nuevo = {"ventas":1, "suma_hp": horsep}
                 lp.put(mapa_agrupado, color, nuevo)
             else:
@@ -473,11 +475,10 @@ def req_5(catalog, horsepower, delta, n):
                 registros_color["suma_hp"] += horsep
     
     cola_prioridad = pq.new_heap()
-    colores = lp.key_set(mapa_agrupado)
-    size_colores = sl.size(colores)
+    size_colores = al.size(lista_colores)
     
     for i in range(size_colores):
-        color = al.get_element(colores, i)
+        color = al.get_element(lista_colores, i)
         datos_color = lp.get(mapa_agrupado, color)
         ventas = datos_color["ventas"]
         suma_hp = datos_color["suma_hp"]
