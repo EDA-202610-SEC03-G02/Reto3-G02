@@ -225,20 +225,22 @@ def req_2(catalog, combustible, minimo, maximo):
     resultado = al.new_list()
     
     if arbol_req2 is not None:
-        llaves = rbt.key_set(arbol_req2)
-        size = sl.size(llaves)
+        llave_min = f"{int(minimo):05d}" 
+        llave_max = f"{int(maximo):05d}-~" 
         
-        for i in range(size):
-            key = sl.get_element(llaves,i)
-            horsepower = int(key.split("-")[0])
+        carros_en_rango = rbt.values(arbol_req2, llave_min, llave_max)
+        
+        nodo = carros_en_rango["first"]
+        while nodo is not None:
+            carro = nodo["info"]
+            hp_carro = int(carro["Horsepower"])
             
-            if minimo <= horsepower <= maximo:
-                carro = rbt.get(arbol_req2, key)
-                al.add_last(resultado, carro)
-                
-                unidad_vendida += 1
-                suma_precios += float(carro["Base Price (USD)"])
-                suma_horsepower += horsepower
+            al.add_last(resultado, carro)
+            unidad_vendida += 1
+            suma_precios += float(str(carro["Base Price (USD)"]).strip() or 0)
+            suma_horsepower += hp_carro
+            
+            nodo = nodo["next"]
     
     if unidad_vendida > 0:
         promedio_precio = suma_precios / unidad_vendida
