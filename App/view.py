@@ -88,9 +88,53 @@ def print_req_1(control):
     """
         Función que imprime la solución del Requerimiento 1 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    modelo = input("Ingrese el modelo a consultar (ej: GLC): ").strip()
+    precio_min = float(input("Ingrese el precio mínimo (USD): ").strip())
+    precio_max = float(input("Ingrese el precio máximo (USD): ").strip())
 
+    resultado = logic.req_1(control, modelo, precio_min, precio_max)
+
+    print(f"\nTiempo de ejecución: {resultado['tiempo']:.2f} ms")
+    print(f"Total de ventas que cumplen el filtro: {resultado['total']}")
+    print(f"Promedio de precio: ${resultado['promedio']:,.2f} USD")
+
+    lista = resultado["resultados"]
+    total = resultado["total"]
+
+    if total == 0:
+        print("No se encontraron ventas con los filtros ingresados")
+        return
+ 
+    indices = resultado["indices"]
+    separador_en = resultado["separador_en"]
+
+    filas = []
+    for i in range(len(indices)):
+        idx = indices[i]
+
+        if separador_en != -1 and i == separador_en:
+            filas.append({
+                "Modelo": None,
+                "Año": None,
+                "Fuel Type": None,
+                "Color": None,
+                "Base Price (USD)": None,
+                "Horsepower": None,
+                "Turbo": None
+            })
+
+        carro = al.get_element(lista, idx)
+        precio_val = carro.get("Base Price (USD)", "").strip() or None
+        filas.append({
+            "Modelo":          carro.get("Model", None).strip() if carro.get("Model") else None,
+            "Año":             carro.get("Year", None).strip() if carro.get("Year") else None,
+            "Fuel Type":       carro.get("Fuel Type", None).strip() if carro.get("Fuel Type") else None,
+            "Color":           carro.get("Color", None).strip() if carro.get("Color") else None,
+            "Base Price (USD)": precio_val,
+            "Horsepower":      carro.get("Horsepower", None).strip() if carro.get("Horsepower") else None,
+            "Turbo":           carro.get("Turbo", None).strip() if carro.get("Turbo") else None,
+        })
+    print(tabulate(filas, headers="keys", tablefmt="fancy_grid"))
 
 def print_req_2(control):
     """

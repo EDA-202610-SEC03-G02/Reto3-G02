@@ -2,6 +2,7 @@ import time
 import csv
 import os
 import sys
+from DataStructures.Map import map_entry as me
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.Tree import red_black_tree as rbt
 from DataStructures.Tree import binary_search_tree as bst
@@ -34,7 +35,6 @@ def new_logic():
     analyzer["req_3"] = lp.new_map(capacidad, factor_carga)
     analyzer["lista_general"] = al.new_list()
     return analyzer
-
 
 # Funciones para la carga de datos
 
@@ -122,22 +122,90 @@ def load_data(catalog, filename):
         "primeros_5": primeros_5,
         "ultimos_5": ultimos_5
     }
-    
-        
-        
-         
-        
-        
+           
 # Funciones de consulta sobre el catálogo
 
-
-def req_1(catalog):
+def req_1(catalog, modelo, precio_min, precio_max):
     """
     Retorna el resultado del requerimiento 1
-    """
+    """    
     # TODO: Modificar el requerimiento 1
-    pass
+      
+    start = get_time()
+    modelo = modelo.lower().strip()
+    map_req1 = catalog["req1"]
+    arbol_modelo = lp.get(map_req1, modelo)
+    
+    if arbol_modelo is None:
+        return {"total": 0, "promedio": 0, "resultados": al.new_list(), "tiempo": delta_time(start, get_time())}
+    
+    precio_min_val = float(precio_min)
+    precio_min_str = format(precio_min_val, "010.2f")
 
+    llave_min = precio_min_str + "-0"
+
+
+    precio_max_val = float(precio_max)
+    precio_max_str = format(precio_max_val, "010.2f")
+    
+    llave_max = precio_max_str + "-9999999"
+
+    carros_en_rango = rbt.values(arbol_modelo, llave_min, llave_max)
+   
+    total = sl.size(carros_en_rango)
+    
+    suma_precios = 0
+    nodo = carros_en_rango["first"]
+    while nodo is not None:
+        carro = nodo["info"]
+        precio_str = carro["Base Price (USD)"].strip()
+        if precio_str != "":
+            precio_val = float(precio_str)
+        else:
+         precio_val = 0
+        suma_precios += precio_val
+        nodo = nodo["next"]
+    if total > 0:
+        promedio = suma_precios / total
+    else:
+        promedio = 0
+        
+    resultado_al = al.new_list()
+    nodo = carros_en_rango["first"]
+    while nodo is not None:
+        al.add_last(resultado_al, nodo["info"])
+        nodo = nodo["next"]
+
+    al.merge_sort(resultado_al, sort_req1)
+    
+    total = al.size(resultado_al)
+    if total > 12:
+        indices = list(range(0, 6)) + list(range(total - 6, total))
+        separador_en = 6
+    else:
+        indices = list(range(total))
+        separador_en = -1
+
+    end = get_time()
+    return {
+        "tiempo": delta_time(start, end),
+        "total": total,
+        "promedio": promedio,
+        "resultados": resultado_al,
+        "indices": indices,
+        "separador_en": separador_en
+    }
+    
+def sort_req1(c1, c2):
+    p1 = float(c1["Base Price (USD)"].strip() or 0)
+    p2 = float(c2["Base Price (USD)"].strip() or 0)
+    if p1 != p2:
+        return p1 < p2 
+    h1 = int(c1["Horsepower"].strip() or 0)
+    h2 = int(c2["Horsepower"].strip() or 0)
+    if h1 != h2:
+        return h1 > h2 
+    return c1["Color"].strip() < c2["Color"].strip()
 
 def req_2(catalog):
     """
