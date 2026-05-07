@@ -2,6 +2,7 @@ import time
 import csv
 import os
 import sys
+from DataStructures.Map import map_entry as me
 from DataStructures.Map import map_linear_probing as lp
 from DataStructures.Tree import red_black_tree as rbt
 from DataStructures.Tree import binary_search_tree as bst
@@ -35,7 +36,6 @@ def new_logic():
     analyzer["req_3"] = lp.new_map(capacidad, factor_carga)
     analyzer["lista_general"] = al.new_list()
     return analyzer
-
 
 # Funciones para la carga de datos
 
@@ -123,15 +123,14 @@ def load_data(catalog, filename):
         "total": total,
         "primeros_5": primeros_5,
         "ultimos_5": ultimos_5
-    }    
-        
+    }
+           
 # Funciones de consulta sobre el catálogo
 
-
-def req_1(catalog):
+def req_1(catalog, modelo, precio_min, precio_max):
     """
     Retorna el resultado del requerimiento 1
-    """
+    """    
     # TODO: Modificar el requerimiento 1
     pass
 
