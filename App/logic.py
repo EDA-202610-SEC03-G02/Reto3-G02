@@ -259,12 +259,85 @@ def req_2(catalog, combustible, minimo, maximo):
     }
 
 
-def req_3(catalog):
-    """
-    Retorna el resultado del requerimiento 3
-    """
-    # TODO: Modificar el requerimiento 3
-    pass
+def req_3(catalog, anio, fuel_type, precio_min, precio_max):
+   """
+   Retorna el resultado del requerimiento 3
+   """
+   # TODO: Modificar el requerimiento 3
+   start_time = get_time()
+
+
+   map_req3 = catalog["req_3"]
+   llave = f"{int(anio)}-{fuel_type.lower().strip()}"
+
+
+   arbol = lp.get(map_req3, llave)
+
+
+   resultado = al.new_list()
+   total = 0
+   suma_precios = 0
+
+
+   if arbol is not None:
+       llaves = rbt.key_set(arbol)
+       size = sl.size(llaves)
+
+
+       arbol_ordenado = rbt.new_map()
+
+
+       for i in range(size):
+           key = sl.get_element(llaves, i)
+           carro = rbt.get(arbol, key)
+
+
+           precio = float(carro["Base Price (USD)"])
+           horsepower = int(carro["Horsepower"])
+           turbo = carro["Turbo"].lower().strip()
+
+
+           if precio_min <= precio <= precio_max:
+               total += 1
+               suma_precios += precio
+
+
+               turbo_orden = 0
+               if turbo != "yes":
+                   turbo_orden = 1
+
+
+               llave_orden = f"{999999999 - precio:015.2f}-{999999 - horsepower:06d}-{turbo_orden}-{total}"
+
+
+               rbt.put(arbol_ordenado, llave_orden, carro)
+
+
+       llaves_ordenadas = rbt.key_set(arbol_ordenado)
+       size_ordenado = sl.size(llaves_ordenadas)
+
+
+       for i in range(size_ordenado):
+           key = sl.get_element(llaves_ordenadas, i)
+           al.add_last(resultado, rbt.get(arbol_ordenado, key))
+
+
+   promedio = 0
+   if total > 0:
+       promedio = suma_precios / total
+
+
+   end_time = get_time()
+   tiempo = delta_time(start_time, end_time)
+
+
+   return {
+       "tiempo": tiempo,
+       "total": total,
+       "promedio_precio": promedio,
+       "ventas": resultado
+   }
+
 
 
 def req_4(catalog, anio, N):
@@ -436,12 +509,179 @@ def req_5(catalog, horsepower, delta, n):
     }
     
 
-def req_6(catalog):
-    """
-    Retorna el resultado del requerimiento 6
-    """
-    # TODO: Modificar el requerimiento 6
-    pass
+def req_6(catalog, anio_min, anio_max, precio_min, precio_max, m):
+   """
+   Retorna el resultado del requerimiento 6
+   """
+   # TODO: Modificar el requerimiento 6
+   start_time = get_time()
+
+
+   lista_carros = catalog["lista_general"]
+   mapa_modelos = lp.new_map(20000, 4)
+   lista_modelos = al.new_list()
+
+
+   size = al.size(lista_carros)
+
+
+   for i in range(size):
+       carro = al.get_element(lista_carros, i)
+
+
+       anio = int(carro["Year"])
+       precio = float(carro["Base Price (USD)"])
+
+
+       if anio_min <= anio <= anio_max and precio_min <= precio <= precio_max:
+           modelo = carro["Model"].lower().strip()
+
+
+           info = lp.get(mapa_modelos, modelo)
+
+
+           if info is None:
+               info = {
+                   "modelo": modelo,
+                   "ventas": al.new_list(),
+                   "suma_precios": 0,
+                   "suma_cuadrados": 0,
+                   "suma_hp": 0,
+                   "total": 0
+               }
+
+
+               lp.put(mapa_modelos, modelo, info)
+               al.add_last(lista_modelos, modelo)
+
+
+           al.add_last(info["ventas"], carro)
+           info["suma_precios"] += precio
+           info["suma_cuadrados"] += precio ** 2
+           info["suma_hp"] += int(carro["Horsepower"])
+           info["total"] += 1
+
+
+   arbol_estabilidad = rbt.new_map()
+   modelos_considerados = 0
+
+
+   for i in range(al.size(lista_modelos)):
+       modelo = al.get_element(lista_modelos, i)
+       info = lp.get(mapa_modelos, modelo)
+
+
+       total = info["total"]
+       promedio = info["suma_precios"] / total
+
+
+       if promedio != 0:
+           modelos_considerados += 1
+
+
+           varianza = (info["suma_cuadrados"] / total) - (promedio ** 2)
+
+
+           if varianza < 0:
+               varianza = 0
+
+
+           desviacion = varianza ** 0.5
+           estabilidad = desviacion / promedio
+           hp_promedio = info["suma_hp"] / total
+
+
+           venta_repr = encontrar_representativa(info["ventas"], promedio)
+
+
+           registro = {
+               "modelo": modelo,
+               "total_ventas": total,
+               "promedio_precio": promedio,
+               "desviacion": desviacion,
+               "estabilidad": estabilidad,
+               "horsepower_promedio": hp_promedio,
+               "venta_representativa": venta_repr
+           }
+
+
+           llave_orden = f"{estabilidad:020.10f}-{desviacion:020.10f}-{modelo}"
+           rbt.put(arbol_estabilidad, llave_orden, registro)
+
+
+   resultado = al.new_list()
+   llaves_estabilidad = rbt.key_set(arbol_estabilidad)
+
+
+   limite = m
+   if sl.size(llaves_estabilidad) < m:
+       limite = sl.size(llaves_estabilidad)
+
+
+   nodo = llaves_estabilidad["first"]
+   contador = 0
+
+
+   while nodo is not None and contador < limite:
+       key = nodo["info"]
+       al.add_last(resultado, rbt.get(arbol_estabilidad, key))
+
+
+       nodo = nodo["next"]
+       contador += 1
+
+
+   end_time = get_time()
+   tiempo = delta_time(start_time, end_time)
+
+
+   return {
+       "tiempo": tiempo,
+       "modelos_considerados": modelos_considerados,
+       "modelos": resultado
+   }
+  
+def encontrar_representativa(lista_ventas, promedio):
+   mejor = None
+   mejor_diferencia = None
+
+
+   for i in range(al.size(lista_ventas)):
+       carro = al.get_element(lista_ventas, i)
+
+
+       precio = float(carro["Base Price (USD)"])
+       anio = int(carro["Year"])
+       diferencia = abs(precio - promedio)
+
+
+       if mejor is None:
+           mejor = carro
+           mejor_diferencia = diferencia
+
+
+       else:
+           mejor_precio = float(mejor["Base Price (USD)"])
+           mejor_anio = int(mejor["Year"])
+
+
+           if diferencia < mejor_diferencia:
+               mejor = carro
+               mejor_diferencia = diferencia
+
+
+           elif diferencia == mejor_diferencia:
+               if precio < mejor_precio:
+                   mejor = carro
+                   mejor_diferencia = diferencia
+
+
+               elif precio == mejor_precio and anio < mejor_anio:
+                   mejor = carro
+                   mejor_diferencia = diferencia
+
+
+   return mejor
 
 
 # Funciones para medir tiempos de ejecucion

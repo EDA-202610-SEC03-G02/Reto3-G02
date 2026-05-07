@@ -206,12 +206,103 @@ def print_req_2(control):
             print(tabulate(datos_carros, headers="keys", tablefmt="fancy_grid"))
 
 def print_req_3(control):
-    """
-        Función que imprime la solución del Requerimiento 3 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 3
-    pass
+   """
+       Función que imprime la solución del Requerimiento 3 en consola
+   """
+   # TODO: Imprimir el resultado del requerimiento 3
+   anio = input("Ingrese el año: ")
+   fuel_type = input("Ingrese el tipo de combustible: ")
+   precio_min = input("Ingrese el precio mínimo: ")
+   precio_max = input("Ingrese el precio máximo: ")
 
+
+   datos = logic.req_3(
+       control,
+       int(anio),
+       fuel_type,
+       float(precio_min),
+       float(precio_max)
+   )
+
+
+   if datos is None or datos["total"] == 0:
+       print("\nNo se encontraron ventas que cumplan la condición.")
+       return
+
+
+   print(f"\nTiempo de consulta: {datos['tiempo']} ms")
+   print(f"\nTotal de ventas encontradas: {datos['total']}")
+   print(f"\nPromedio de precio: {round(datos['promedio_precio'], 2)} USD")
+
+
+   ventas = datos["ventas"]
+   total = al.size(ventas)
+
+
+   resultado = []
+
+
+   if total <= 12:
+
+
+       for i in range(total):
+           carro = al.get_element(ventas, i)
+
+
+           carro_info = {
+               "Model": carro["Model"],
+               "Year": carro["Year"],
+               "Fuel Type": carro["Fuel Type"],
+               "Color": carro["Color"],
+               "Base Price (USD)": carro["Base Price (USD)"],
+               "Horsepower": carro["Horsepower"],
+               "Turbo": carro["Turbo"]
+           }
+
+
+           resultado.append(carro_info)
+
+
+   else:
+
+
+       for i in range(6):
+           carro = al.get_element(ventas, i)
+
+
+           carro_info = {
+               "Model": carro["Model"],
+               "Year": carro["Year"],
+               "Fuel Type": carro["Fuel Type"],
+               "Color": carro["Color"],
+               "Base Price (USD)": carro["Base Price (USD)"],
+               "Horsepower": carro["Horsepower"],
+               "Turbo": carro["Turbo"]
+           }
+
+
+           resultado.append(carro_info)
+
+
+       for i in range(total - 6, total):
+           carro = al.get_element(ventas, i)
+
+
+           carro_info = {
+               "Model": carro["Model"],
+               "Year": carro["Year"],
+               "Fuel Type": carro["Fuel Type"],
+               "Color": carro["Color"],
+               "Base Price (USD)": carro["Base Price (USD)"],
+               "Horsepower": carro["Horsepower"],
+               "Turbo": carro["Turbo"]
+           }
+
+
+           resultado.append(carro_info)
+
+
+   print(tabulate(resultado, headers="keys", tablefmt="fancy_grid"))
 
 def print_req_4(control):
     """
@@ -298,12 +389,76 @@ def print_req_5(control):
         
 
 def print_req_6(control):
-    """
-        Función que imprime la solución del Requerimiento 6 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 6
-    pass
+   """
+       Función que imprime la solución del Requerimiento 6 en consola
+   """
+   # TODO: Imprimir el resultado del requerimiento 6
+   anio_min = input("Ingrese el año mínimo: ")
+   anio_max = input("Ingrese el año máximo: ")
 
+
+   precio_min = input("Ingrese el precio mínimo: ")
+   precio_max = input("Ingrese el precio máximo: ")
+
+
+   m = input("Ingrese la cantidad de modelos a mostrar: ")
+   print("ANTES DE REQ 6")
+
+
+   datos = logic.req_6(
+       control,
+       int(anio_min),
+       int(anio_max),
+       float(precio_min),
+       float(precio_max),
+       int(m)
+   )
+   print("ANTES DE REQ 6")
+
+
+   if datos is None or datos["modelos_considerados"] == 0:
+       print("\nNo se encontraron modelos que cumplan la condición.")
+       return
+
+
+   print(f"\nTiempo de consulta: {datos['tiempo']} ms")
+   print(f"\nModelos considerados: {datos['modelos_considerados']}")
+
+
+   resultado = []
+
+
+   modelos = datos["modelos"]
+
+
+   for i in range(al.size(modelos)):
+       modelo = al.get_element(modelos, i)
+
+
+       venta = modelo["venta_representativa"]
+
+
+       modelo_info = {
+           "Modelo": modelo["modelo"],
+           "Total ventas": modelo["total_ventas"],
+           "Promedio precio": round(modelo["promedio_precio"], 2),
+           "Desviación": round(modelo["desviacion"], 2),
+           "Estabilidad": round(modelo["estabilidad"], 6),
+           "HP promedio": round(modelo["horsepower_promedio"], 2),
+           "Venta representativa": venta["Model"],
+           "Year": venta["Year"],
+           "Fuel Type": venta["Fuel Type"],
+           "Precio repr": venta["Base Price (USD)"],
+           "HP repr": venta["Horsepower"],
+           "Turbo": venta["Turbo"]
+       }
+
+
+       resultado.append(modelo_info)
+
+
+   print(tabulate(resultado, headers="keys", tablefmt="fancy_grid"))
+   
 # Se crea la lógica asociado a la vista
 control = new_logic()
 
