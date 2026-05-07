@@ -7,6 +7,7 @@ from DataStructures.Tree import red_black_tree as rbt
 from DataStructures.Tree import binary_search_tree as bst
 from DataStructures.List import array_list as al
 from DataStructures.List import single_linked_list as sl
+from DataStructures.Priority_queue import priority_queue as pq
 
 csv.field_size_limit(2147483647)
 sys.setrecursionlimit(10000)
@@ -89,7 +90,8 @@ def load_data(catalog, filename):
         if arbol_req2 is None:
             arbol_req2 = rbt.new_map()
             lp.put(map_req2, fuel_type, arbol_req2)
-        rbt.put(arbol_req2, f"{int(horsepower):06d}-{total}", carro)
+        llave_req2 = f"{int(horsepower):06d}-{float(precio):010.2f}-{modelo}-{total}"
+        rbt.put(arbol_req2, llave_req2, carro)
         
         llave_req3 = f"{int(anio)}-{fuel_type}"
         arbol_req3 = lp.get(map_req3, llave_req3)
@@ -121,12 +123,7 @@ def load_data(catalog, filename):
         "total": total,
         "primeros_5": primeros_5,
         "ultimos_5": ultimos_5
-    }
-    
-        
-        
-         
-        
+    }    
         
 # Funciones de consulta sobre el catálogo
 
@@ -139,12 +136,54 @@ def req_1(catalog):
     pass
 
 
-def req_2(catalog):
+def req_2(catalog, combustible, minimo, maximo):
     """
     Retorna el resultado del requerimiento 2
     """
     # TODO: Modificar el requerimiento 2
-    pass
+    star_time = get_time()
+    
+    map_req2 = catalog["req_2"]
+    arbol_req2 = lp.get(map_req2, combustible.lower().strip())
+    
+    unidad_vendida = 0
+    suma_precios = 0
+    suma_horsepower = 0
+    resultado = al.new_list()
+    
+    if arbol_req2 is not None:
+        llaves = rbt.key_set(arbol_req2)
+        size = sl.size(llaves)
+        
+        for i in range(size):
+            key = sl.get_element(llaves,i)
+            horsepower = int(key.split("-")[0])
+            
+            if minimo <= horsepower <= maximo:
+                carro = rbt.get(arbol_req2, key)
+                al.add_last(resultado, carro)
+                
+                unidad_vendida += 1
+                suma_precios += float(carro["Base Price (USD)"])
+                suma_horsepower += horsepower
+    
+    if unidad_vendida > 0:
+        promedio_precio = suma_precios / unidad_vendida
+        promedio_horsepower = suma_horsepower / unidad_vendida
+    else:
+        promedio_precio = 0
+        promedio_horsepower = 0
+    
+    end_time = get_time()
+    tiempo = delta_time(star_time, end_time)
+    
+    return {
+        "tiempo": tiempo,
+        "total_unidades": unidad_vendida,
+        "promedio_precio": round(promedio_precio, 2),
+        "promedio_horsepower": round(promedio_horsepower, 2),
+        "resultado": resultado
+    }
 
 
 def req_3(catalog):
@@ -163,12 +202,72 @@ def req_4(catalog):
     pass
 
 
-def req_5(catalog):
+def req_5(catalog, horsepower, delta, n):
     """
     Retorna el resultado del requerimiento 5
     """
     # TODO: Modificar el requerimiento 5
-    pass
+    star_time = get_time()
+    horsepower_min = horsepower - delta
+    horsepower_max = horsepower + delta
+    
+    lista_carros = catalog["lista_general"]
+    size = al.size(lista_carros)
+    
+    mapa_agrupado = lp.new_map(10000, 0.5)
+    total_rango = 0
+    
+    for i in range(size):
+        carro = al.get_element(lista_carros, i)
+        horsep = int(carro["Horsepower"].strip())
+        
+        if horsepower_min <= horsep <= horsepower_max:
+            total_rango += 1
+            color = carro["Color"].lower().strip()
+            registros_color = lp.get(mapa_agrupado, color)
+            if registros_color is None:
+                nuevo = {"ventas":1, "suma_hp": horsep}
+                lp.put(mapa_agrupado, color, nuevo)
+            else:
+                registros_color["ventas"] += 1
+                registros_color["suma_hp"] += horsep
+    
+    cola_prioridad = pq.new_heap()
+    colores = lp.key_set(mapa_agrupado)
+    size_colores = sl.size(colores)
+    
+    for i in range(size_colores):
+        color = sl.get_element(colores, i)
+        datos_color = lp.get(mapa_agrupado, color)
+        ventas = datos_color["ventas"]
+        suma_hp = datos_color["suma_hp"]
+        promedio_hp = suma_hp / ventas
+        
+        llave = f"{1000000 - ventas:06d}-{100000 - promedio_hp:06d.2f}-{color}"
+        
+        info_color = {
+            "color": color,
+            "ventas": ventas,
+            "promedio_hp": promedio_hp
+        }
+        
+        pq.insert(cola_prioridad, llave, info_color)
+        
+    resultado = al.new_list()
+    for i in range(n):
+        if not pq.is_empty(cola_prioridad):
+            mejor = pq.remove(cola_prioridad)
+            al.add_last(resultado, mejor)
+            
+    end_time = get_time()
+    tiempo = delta_time(star_time, end_time)
+    
+    return {
+        "tiempo": tiempo,
+        "total_rango": total_rango,
+        "resultado": resultado
+    }
+    
 
 def req_6(catalog):
     """

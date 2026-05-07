@@ -97,8 +97,69 @@ def print_req_2(control):
         Función que imprime la solución del Requerimiento 2 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 2
-    pass
-
+    combustible = input("Ingrese el tipo de combustible: ").strip().lower()
+    minimo = float(input("Ingrese el valor mínimo de caballos de fuerza: "))
+    maximo = float(input("Ingrese el valor máximo de caballos de fuerza: "))
+    
+    datos = logic.req_2(control, combustible, minimo, maximo)
+    print(f"\nTiempo de consulta: {datos['tiempo']} ms")
+    print(f"Total de carros encontrados: {datos['total_unidades']} unidades")
+    print(f"Promedio de precio: {datos['promedio_precio']} USD")
+    print(f"Promedio de caballos de fuerza: {datos['promedio_horsepower']} HP")
+    
+    lista_carros = datos["resultado"]
+    total = datos["total_unidades"]
+    
+    if total == 0:
+        print("\nNo se encontraron carros que cumplan con los criterios de búsqueda.\n")
+    else:
+        if total>12:
+            datos_primeros = []
+            print(f"\nMostrando los primeros 6 carros encontrados:\n")
+            for i in range(6):
+                carro = al.get_element(lista_carros, i)
+                carro_info = {
+                    "Modelo": carro["Model"],
+                    "Año": carro["Year"],
+                    "Fuel Type": carro["Fuel Type"],
+                    "Color": carro["Color"],
+                    "Precio": carro["Base Price (USD)"],
+                    "Horsepower": carro["Horsepower"],
+                    "Turbo": carro["Turbo"]
+                }
+                datos_primeros.append(carro_info)
+            print(tabulate(datos_primeros, headers="keys", tablefmt="fancy_grid"))
+            print(f"\nMostrando los últimos 6 carros encontrados:\n")
+            datos_ultimos = []
+            for i in range(total-6, total):
+                carro = al.get_element(lista_carros, i)
+                carro_info = {
+                    "Modelo": carro["Model"],
+                    "Año": carro["Year"],
+                    "Fuel Type": carro["Fuel Type"],
+                    "Color": carro["Color"],
+                    "Precio": carro["Base Price (USD)"],
+                    "Horsepower": carro["Horsepower"],
+                    "Turbo": carro["Turbo"]
+                }
+                datos_ultimos.append(carro_info)
+            print(tabulate(datos_ultimos, headers="keys", tablefmt="fancy_grid"))
+        else:
+            datos_carros = []
+            print(f"\nMostrando los {total} carros encontrados:\n")
+            for i in range(total):
+                carro = al.get_element(lista_carros, i)
+                carro_info = {
+                    "Modelo": carro["Model"],
+                    "Año": carro["Year"],
+                    "Fuel Type": carro["Fuel Type"],
+                    "Color": carro["Color"],
+                    "Precio": carro["Base Price (USD)"],
+                    "Horsepower": carro["Horsepower"],
+                    "Turbo": carro["Turbo"]
+                }
+                datos_carros.append(carro_info)
+            print(tabulate(datos_carros, headers="keys", tablefmt="fancy_grid"))
 
 def print_req_3(control):
     """
@@ -121,8 +182,32 @@ def print_req_5(control):
         Función que imprime la solución del Requerimiento 5 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 5
-    pass
-
+    horsepower = int(input("Ingrese el valor de caballos de fuerza: "))
+    delta = int(input("Ingrese el rango de caballos de fuerza: "))
+    n = int(input("Ingrese el número de carros a mostrar: "))
+    
+    datos = logic.req_5(control, horsepower, delta, n)
+    print(f"\nTiempo de consulta: {datos['tiempo']} ms")
+    print(f"Total de carros encontrados: {datos['total_rango']} unidades")
+    lista_colores = datos["resultado"]
+    total_colores = al.size(lista_colores)
+    
+    if total_colores == 0:
+        print("\nNo se encontraron carros que cumplan con los criterios de búsqueda.\n")
+    else:
+        print(f"\nMostrando los top {n} colores con carros más vendidos:\n")
+        top = []
+        for i in range(total_colores):
+            info = al.get_element(lista_colores, i)
+            color_info = {
+                "Ranking": i+1,
+                "Color": info["color"].capitalize(),
+                "Ventas": info["ventas"],
+                "Promedio HP": round(info["promedio_hp"], 2)
+            }
+            top.append(color_info)
+        print(tabulate(top, headers="keys", tablefmt="fancy_grid"))
+        
 
 def print_req_6(control):
     """
