@@ -477,13 +477,13 @@ def req_5(catalog, horsepower, delta, n):
     size_colores = sl.size(colores)
     
     for i in range(size_colores):
-        color = sl.get_element(colores, i)
+        color = al.get_element(colores, i)
         datos_color = lp.get(mapa_agrupado, color)
         ventas = datos_color["ventas"]
         suma_hp = datos_color["suma_hp"]
         promedio_hp = suma_hp / ventas
         
-        llave = f"{1000000 - ventas:06d}-{100000 - promedio_hp:06d.2f}-{color}"
+        llave = f"{1000000 - ventas:06d}-{100000 - promedio_hp:06.2f}-{color}"
         
         info_color = {
             "color": color,
