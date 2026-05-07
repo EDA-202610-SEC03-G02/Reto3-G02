@@ -400,11 +400,8 @@ def print_req_6(control):
    precio_min = input("Ingrese el precio mínimo: ")
    precio_max = input("Ingrese el precio máximo: ")
 
-
    m = input("Ingrese la cantidad de modelos a mostrar: ")
-   print("ANTES DE REQ 6")
-
-
+   
    datos = logic.req_6(
        control,
        int(anio_min),
@@ -413,9 +410,7 @@ def print_req_6(control):
        float(precio_max),
        int(m)
    )
-   print("ANTES DE REQ 6")
-
-
+   
    if datos is None or datos["modelos_considerados"] == 0:
        print("\nNo se encontraron modelos que cumplan la condición.")
        return
