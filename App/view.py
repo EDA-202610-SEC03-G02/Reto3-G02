@@ -156,8 +156,52 @@ def print_req_4(control):
     """
         Función que imprime la solución del Requerimiento 4 en consola
     """
-    # TODO: Imprimir el resultado del requerimiento 4
-    pass
+    anio = int(input("Ingrese el año a consultar (ej: 2021): ").strip())
+    N = int(input("Ingrese la cantidad N de modelos a mostrar: ").strip())
+
+    resultado = logic.req_4(control, anio, N)
+
+    print(f"\nTiempo de ejecución: {resultado['tiempo']:.2f} ms")
+    print(f"Total de modelos encontrados en {anio}: {resultado['total_modelos']}")
+    print(f"\nTop {N} modelos con mayor número de ventas en {anio}:\n")
+
+    top_n = resultado["top_n"]
+    total_top = al.size(top_n)
+
+    for i in range(total_top):
+        info = al.get_element(top_n, i)
+
+        print(f"{'='*60}")
+        modelo_str = info["modelo"].upper() if info["modelo"] is not None else "None"
+        print(f"  #{i+1} — Modelo: {modelo_str}")
+        print(f"{'='*60}")
+
+        resumen = [{
+            "Ventas":          info["ventas"],
+            "Precio Promedio": f"${info['precio_prom']:,.2f}",
+            "HP Promedio":     f"{info['hp_prom']:.1f}",
+            "% Turbo":         f"{info['pct_turbo']:.1f}%",
+        }]
+        print(tabulate(resumen, headers="keys", tablefmt="fancy_grid"))
+
+        max_carro = info.get("max_hp_carro")
+        if max_carro:
+            print(f"\n  Venta con mayor Horsepower del modelo {modelo_str}:")
+            detalle = [{
+                "Modelo":           max_carro["Model"].strip() if max_carro["Model"].strip() else None,
+                "Año":              max_carro["Year"].strip() if max_carro["Year"].strip() else None,
+                "Fuel Type":        max_carro["Fuel Type"].strip() if max_carro["Fuel Type"].strip() else None,
+                "Color":            max_carro["Color"].strip() if max_carro["Color"].strip() else None,
+                "Base Price (USD)": max_carro["Base Price (USD)"].strip() if max_carro["Base Price (USD)"].strip() else None,
+                "Horsepower":       max_carro["Horsepower"].strip() if max_carro["Horsepower"].strip() else None,
+                "Turbo":            max_carro["Turbo"].strip() if max_carro["Turbo"].strip() else None,
+            }]
+            print(tabulate(detalle, headers="keys", tablefmt="fancy_grid"))
+        else:
+            print("  No se encontró venta representativa.")
+
+        print()
+
 
 
 def print_req_5(control):

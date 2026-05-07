@@ -223,13 +223,107 @@ def req_3(catalog):
     pass
 
 
-def req_4(catalog):
+def req_4(catalog, anio, N):
     """
-    Retorna el resultado del requerimiento 4
+    Retorna el resultado del requerimiento 4:
+    Para un año dado, identificar los N modelos con mayor número de vehículos vendidos.
     """
-    # TODO: Modificar el requerimiento 4
-    pass
 
+    start = get_time()
+
+    reporte = catalog["reporte_carga"]
+    llave_min = f"{int(anio):04d}-0000000000.00-"
+    llave_max = f"{int(anio):04d}-9999999999.99-~"
+    carros_anio = rbt.values(reporte, llave_min, llave_max)
+    
+    mapa_modelos = lp.new_map(5000, 0.5)
+
+    nodo = carros_anio["first"]
+    while nodo is not None:
+        carro = nodo["info"]
+
+        modelo_raw = carro["Model"].strip()
+        if modelo_raw:
+            modelo = modelo_raw.lower()
+        else:
+            modelo = None
+
+        precio = float(carro["Base Price (USD)"].strip() or 0)
+        hp = int(carro["Horsepower"].strip() or 0)
+        turbo = carro["Turbo"].strip().lower()
+        anio_carro = int(carro["Year"].strip() or 0)
+
+        info = lp.get(mapa_modelos, modelo)
+        if info is None:
+            info = {
+                "ventas": 0,
+                "suma_precio": 0.0,
+                "suma_hp": 0,
+                "turbo_yes": 0,
+                "max_hp": -1,
+                "max_hp_carro": None
+            }
+
+        info["ventas"] += 1
+        info["suma_precio"] += precio
+        info["suma_hp"] += hp
+        if turbo == "yes":
+            info["turbo_yes"] += 1
+
+        if hp > info["max_hp"]:
+            info["max_hp"] = hp
+            info["max_hp_carro"] = carro
+        elif hp == info["max_hp"] and info["max_hp_carro"] is not None:
+            precio_actual = float(info["max_hp_carro"]["Base Price (USD)"].strip() or 0)
+            anio_actual = int(info["max_hp_carro"]["Year"].strip() or 0)
+            if precio < precio_actual or (precio == precio_actual and anio_carro < anio_actual):
+                info["max_hp_carro"] = carro
+
+        lp.put(mapa_modelos, modelo, info)
+        nodo = nodo["next"]
+
+    lista_modelos = al.new_list()
+    tabla = mapa_modelos["table"]
+
+    for i in range(mapa_modelos["capacity"]):
+        entry = al.get_element(tabla, i)
+        key = me.get_key(entry)
+        value = me.get_value(entry)
+
+        if key is not None and key != "__EMPTY__":
+            ventas = value["ventas"]
+            precio_prom = value["suma_precio"] / ventas
+            hp_prom = value["suma_hp"] / ventas
+            pct_turbo = (value["turbo_yes"] / ventas) * 100
+
+            al.add_last(lista_modelos, {
+                "modelo": key,
+                "ventas": ventas,
+                "precio_prom": precio_prom,
+                "hp_prom": hp_prom,
+                "pct_turbo": pct_turbo,
+                "max_hp_carro": value["max_hp_carro"]
+            })
+
+    total_modelos = al.size(lista_modelos)
+
+    al.merge_sort(lista_modelos, sort_req4)
+
+    n_real = min(N, total_modelos)
+    top_n = al.sub_list(lista_modelos, 0, n_real)
+
+    end = get_time()
+    return {
+        "tiempo": delta_time(start, end),
+        "total_modelos": total_modelos,
+        "top_n": top_n
+    }
+
+
+def sort_req4(m1, m2):
+    if m1["ventas"] != m2["ventas"]:
+        return m1["ventas"] > m2["ventas"]
+    return m1["precio_prom"] > m2["precio_prom"]
 
 def req_5(catalog):
     """
